@@ -5,11 +5,13 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
+import uvicorn
 load_dotenv()
 
 app = FastAPI()
 
 class ChatRequest(BaseModel):
+    model: str = "gemini-1.5-flash"
     message: str
     history: List[Dict[str, str]] = [{
         "role": "user",
@@ -30,7 +32,7 @@ def chat(inputs: ChatRequest):
         # Kết hợp lịch sử hội thoại và tin nhắn hiện tại thành một đầu vào duy nhất
         full_input = f"{conversation_history}\nuser: {inputs.message}"
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel(inputs.model)
         
         response = model.generate_content(full_input)  # Chỉ truyền một đối số duy nhất
 
@@ -43,3 +45,7 @@ def chat(inputs: ChatRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    
+
+if __name__  == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=5000)
